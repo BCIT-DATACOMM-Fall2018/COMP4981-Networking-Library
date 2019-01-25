@@ -122,7 +122,7 @@ int initSocket(struct socketStruct* socketPointer){
   if ((socketPointer->socketDescriptor = socket (AF_INET, SOCK_DGRAM, 0)) == -1)
   {
     perror ("Can't create a socket");
-    return errno;
+    return 0;
   }
 
   return 1;
@@ -162,7 +162,7 @@ int bindPort(struct socketStruct* socketPointer, uint16_t port) {
 
   if (bind(socketPointer->socketDescriptor, (struct sockaddr*) &(socketAddress), sizeof(socketAddress)) == -1) {
     perror ("Can't bind name to socket");
-    return errno;
+    return 0;
   }
   return 1;
 }
