@@ -118,7 +118,7 @@ int initSocketTCP(struct socketStruct* socketPointer) {
 -- This function is used to initialize the socket contained within a socketStruct as a
 -- UDP socket. After the socket is initialized it should be bound to a port by calling bindPort.
 ----------------------------------------------------------------------------------------------------------------------*/
-int initSocket(struct socketStruct* socketPointer){
+int32_t initSocket(struct socketStruct* socketPointer){
   if ((socketPointer->socketDescriptor = socket (AF_INET, SOCK_DGRAM, 0)) == -1)
   {
     perror ("Can't create a socket");
@@ -152,7 +152,7 @@ int initSocket(struct socketStruct* socketPointer){
 -- UDP socket. After the socket is initialized it should be bound to a port by calling
 -- bindPort. Use a port of 0 to specify an ephemeral port.
 ----------------------------------------------------------------------------------------------------------------------*/
-int bindPort(struct socketStruct* socketPointer, uint16_t port) {
+int32_t bindPort(struct socketStruct* socketPointer, uint16_t port) {
   struct sockaddr_in socketAddress;
   memset((char *)&socketAddress, 0, sizeof(socketAddress));
   socketAddress.sin_family = AF_INET;
@@ -262,7 +262,7 @@ struct socketStruct * acceptClient(struct socketStruct* socketPointer) {
 -- NOTES:
 -- This function is used to send data on a connected TCP socket.
 ----------------------------------------------------------------------------------------------------------------------*/
-int sendDataTCP(struct socketStruct* socketPointer, const char* data, size_t dataLength) {
+int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, size_t dataLength) {
   	if (send(socketPointer->socketDescriptor, data, dataLength, 0) < 0) {
       perror("send error");
       return 0;
@@ -294,7 +294,7 @@ int sendDataTCP(struct socketStruct* socketPointer, const char* data, size_t dat
 -- This function is used to send data on a bound UDP port. The data will be sent to the IP address and port
 -- specified in the destination struct.
 ----------------------------------------------------------------------------------------------------------------------*/
-int sendData(struct socketStruct* socketPointer, struct destination * dest, const char* data, size_t dataLength){
+int32_t sendData(struct socketStruct* socketPointer, struct destination * dest, const char* data, size_t dataLength){
     struct sockaddr_in destSockAddr;
     memset((char *)&destSockAddr, 0, sizeof(destSockAddr));
     destSockAddr.sin_family = AF_INET;
@@ -333,7 +333,7 @@ int sendData(struct socketStruct* socketPointer, struct destination * dest, cons
 -- until packetSize characters have been read or an error occurs. If an error occurs errno will
 -- be set accordingly.
 ----------------------------------------------------------------------------------------------------------------------*/
-int recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_t packetSize) {
+int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_t packetSize) {
   int readCount;
   int32_t length = packetSize;
   while ((readCount = recv((socketPointer->socketDescriptor), dataBuffer, length, 0)) < length) {
@@ -374,7 +374,7 @@ int recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_t pa
 -- NOTES:
 -- This function is used to receive data from a bound UDP port.
 ----------------------------------------------------------------------------------------------------------------------*/
-int recvData(struct socketStruct* socketPointer, char * dataBuffer, size_t dataBufferSize){
+int32_t recvData(struct socketStruct* socketPointer, char * dataBuffer, size_t dataBufferSize){
     struct sockaddr_in destSockAddr;
     socklen_t destSockAddrSize = sizeof(destSockAddr);
     int bytesReceived;
@@ -408,7 +408,7 @@ int recvData(struct socketStruct* socketPointer, char * dataBuffer, size_t dataB
 -- NOTES:
 -- This function is used to close a socket contained within a socketStruct.
 ----------------------------------------------------------------------------------------------------------------------*/
-int closeSocket(struct socketStruct * socketPointer){
+int32_t closeSocket(struct socketStruct * socketPointer){
     return close(socketPointer->socketDescriptor);
 }
 
@@ -454,6 +454,6 @@ void freeSocket(struct socketStruct * socketPointer){
 -- NOTES:
 -- This function is used to retrieve errno
 ----------------------------------------------------------------------------------------------------------------------*/
-int getSocketError(){
+int32_t getSocketError(){
   return errno;
 }

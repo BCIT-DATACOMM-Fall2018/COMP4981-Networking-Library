@@ -18,17 +18,17 @@ struct socketStruct{
 
 
 struct socketStruct * createSocket();
-int initSocket(struct socketStruct* socketPointer);
-int sendData(struct socketStruct* socket, struct destination * dest, const char* data, size_t dataLength);
-int recvData(struct socketStruct* socket, char * dataBuffer, size_t dataBufferLength);
-int closeSocket(struct socketStruct * socket);
+int32_t initSocket(struct socketStruct* socketPointer);
+int32_t sendData(struct socketStruct* socket, struct destination * dest, const char* data, u_int64_t dataLength);
+int32_t recvData(struct socketStruct* socket, char * dataBuffer, u_int64_t dataBufferLength);
+int32_t closeSocket(struct socketStruct * socket);
 void freeSocket(struct socketStruct * socket);
 
-int initSocketTCP(struct socketStruct* socketPointer);
-int bindPort(struct socketStruct* socketPointer, uint16_t port);
-int connectPort(struct socketStruct* socketPointer, struct destination* dest);
+int32_t initSocketTCP(struct socketStruct* socketPointer);
+int32_t bindPort(struct socketStruct* socketPointer, uint16_t port);
+int32_t connectPort(struct socketStruct* socketPointer, struct destination* dest);
 struct socketStruct * acceptClient(struct socketStruct* socketPointer);
-int sendDataTCP(struct socketStruct* socketPointer, const char* data, size_t dataBufferSize);
-int recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_t packetSize);
+int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, uint64_t dataBufferSize);
+int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_t packetSize);
 
-int getSocketError();
+int32_t getSocketError();
