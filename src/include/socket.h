@@ -14,6 +14,7 @@
 
 struct socketStruct{
     int32_t socketDescriptor;
+    int32_t lastError;
 };
 
 
@@ -31,4 +32,4 @@ struct socketStruct * acceptClient(struct socketStruct* socketPointer);
 int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, uint64_t dataBufferSize);
 int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_t packetSize);
 
-int32_t getSocketError();
+int32_t getSocketError(struct socketStruct* socketPointer);

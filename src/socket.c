@@ -81,7 +81,7 @@ struct socketStruct * createSocket(){
 --                struct socketStrict * socketPointer: A pointer to the socketStruct whose 
 --                                                     socket is to be initialized.
 --
--- RETURNS: On success 1 is returned. On error 0 is returned and errno is set appropriatly.
+-- RETURNS: On success 1 is returned. On error 0 is returned and lastError of the socket struct is set appropriately.
 --    
 -- NOTES:
 -- This function is used to initialize the socket contained within a socketStruct as a
@@ -112,7 +112,7 @@ int initSocketTCP(struct socketStruct* socketPointer) {
 --                struct socketStrict * socketPointer: A pointer to the socketStruct whose 
 --                                                     socket is to be initialized.
 --
--- RETURNS: On success 1 is returned. On error 0 is returned and errno is set appropriatly.
+-- RETURNS: On success 1 is returned. On error 0 is returned and lastError of the socket struct is set appropriately.
 --
 -- NOTES:
 -- This function is used to initialize the socket contained within a socketStruct as a
@@ -122,6 +122,7 @@ int32_t initSocket(struct socketStruct* socketPointer){
   if ((socketPointer->socketDescriptor = socket (AF_INET, SOCK_DGRAM, 0)) == -1)
   {
     perror ("Can't create a socket");
+    socketPointer->lastError=errno;
     return 0;
   }
 
@@ -145,7 +146,7 @@ int32_t initSocket(struct socketStruct* socketPointer){
 --                uint16_t: The port for the socket to be bound to. A port of 0 specifies 
 --                          an ephemeral port
 --
--- RETURNS: On success 1 is returned. On error 0 is returned and errno is set appropriatly.
+-- RETURNS: On success 1 is returned. On error 0 is returned and lastError of the socket struct is set appropriately.
 --
 -- NOTES:
 -- This function is used to initialize the socket contained within a socketStruct as a
@@ -162,6 +163,7 @@ int32_t bindPort(struct socketStruct* socketPointer, uint16_t port) {
 
   if (bind(socketPointer->socketDescriptor, (struct sockaddr*) &(socketAddress), sizeof(socketAddress)) == -1) {
     perror ("Can't bind name to socket");
+    socketPointer->lastError=errno;
     return 0;
   }
   return 1;
@@ -184,7 +186,7 @@ int32_t bindPort(struct socketStruct* socketPointer, uint16_t port) {
 --                struct destination* dest: A pointer to a destination constructor containing
 --                                          the address and port to connect to.
 --
--- RETURNS: On success 1 is returned. On error 0 is returned and errno is set appropriatly.
+-- RETURNS: On success 1 is returned. On error 0 is returned and lastError of the socket struct is set appropriately.
 --    
 -- NOTES:
 -- This function is used to connect an initialized TCP socket to a destination.
@@ -198,6 +200,7 @@ int connectPort(struct socketStruct* socketPointer, struct destination* dest) {
 
   if (connect(socketPointer->socketDescriptor, (struct sockaddr *) &(destSockAddr), sizeof(destSockAddr)) == -1) {
     perror("Can't connect to server");
+    socketPointer->lastError=errno;
     return 0;
   }
   return 1;
@@ -220,7 +223,7 @@ int connectPort(struct socketStruct* socketPointer, struct destination* dest) {
 --                                                     connection
 --
 -- RETURNS: On sucess a pointer to a newly created socketStruct is returned. On error NULL is
---          returned and errno is set appropriatly.
+--          returned and lastError of the socket struct is set appropriately.
 --
 -- NOTES:
 -- This function is used to accept a incoming TCP connection.
@@ -233,6 +236,7 @@ struct socketStruct * acceptClient(struct socketStruct* socketPointer) {
 
   if ((connectionSocket->socketDescriptor = (uint32_t)accept(socketPointer->socketDescriptor, (struct sockaddr *) &clientAddr, &clientAddressLength)) == -1) {
     perror("Unable to connect to client");
+    socketPointer->lastError=errno;
     free(connectionSocket);
     return NULL;
   }
@@ -257,7 +261,7 @@ struct socketStruct * acceptClient(struct socketStruct* socketPointer) {
 --                const char * data: A char array containing the data to be sent
 --                size_t dataLength: The length of the data in the char array
 --
--- RETURNS: On success 1 is returned. On error 0 is returned and errno is set appropriatly.
+-- RETURNS: On success 1 is returned. On error 0 is returned and lastError of the socket struct is set appropriately.
 --
 -- NOTES:
 -- This function is used to send data on a connected TCP socket.
@@ -265,6 +269,7 @@ struct socketStruct * acceptClient(struct socketStruct* socketPointer) {
 int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, size_t dataLength) {
   	if (send(socketPointer->socketDescriptor, data, dataLength, 0) < 0) {
       perror("send error");
+      socketPointer->lastError=errno;
       return 0;
     }
     return 1;
@@ -288,7 +293,7 @@ int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, size_t
 --                const char * data: A char array containing the data to be sent
 --                size_t dataLength: The length of the data in the char array
 --
--- RETURNS: On success 1 is returned. On error 0 is returned and errno is set appropriatly.
+-- RETURNS: On success 1 is returned. On error 0 is returned and lastError of the socket struct is set appropriately.
 --
 -- NOTES:
 -- This function is used to send data on a bound UDP port. The data will be sent to the IP address and port
@@ -304,6 +309,7 @@ int32_t sendData(struct socketStruct* socketPointer, struct destination * dest, 
     if (sendto (socketPointer->socketDescriptor, data, dataLength, 0,(struct sockaddr *)&destSockAddr, sizeof(destSockAddr)) < 0)
 		{
 			perror ("sendto error");
+      socketPointer->lastError=errno;
 			return 0;
 		}
     return 1;
@@ -343,6 +349,7 @@ int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_
     }
     if (readCount == -1) {
       perror("recv error");
+      socketPointer->lastError=errno;
       return readCount;
     }
     dataBuffer += readCount;
@@ -369,7 +376,7 @@ int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_
 --                size_t dataBufferSize: The size of dataBuffer
 --
 -- RETURNS: On success the number of bytes read into dataBuffer is returned. 
---          On error 0 is returned and errno is set appropriatly.
+--          On error 0 is returned and lastError of the socket struct is set appropriately.
 --
 -- NOTES:
 -- This function is used to receive data from a bound UDP port.
@@ -382,6 +389,7 @@ int32_t recvData(struct socketStruct* socketPointer, char * dataBuffer, size_t d
     if ((bytesReceived = recvfrom (socketPointer->socketDescriptor, dataBuffer, dataBufferSize, 0, (struct sockaddr *)&destSockAddr, &destSockAddrSize)) < 0)
     {
       perror ("recvfrom error");
+      socketPointer->lastError=errno;
       return -1;
     }
     return bytesReceived;
@@ -403,13 +411,13 @@ int32_t recvData(struct socketStruct* socketPointer, char * dataBuffer, size_t d
 --                                                     socket should be closed
 --
 -- RETURNS: On success 0 is returned. 
---          On error -1 is returned and errno is set appropriatly.
+--          On error -1 is returned and lastError of the socket struct is set appropriately.
 --
 -- NOTES:
 -- This function is used to close a socket contained within a socketStruct.
 ----------------------------------------------------------------------------------------------------------------------*/
 int32_t closeSocket(struct socketStruct * socketPointer){
-    return close(socketPointer->socketDescriptor);
+  return close(socketPointer->socketDescriptor);
 }
 
 /*------------------------------------------------------------------------------------------------------------------
@@ -449,11 +457,11 @@ void freeSocket(struct socketStruct * socketPointer){
 -- 
 -- INTERFACE: int getSocketError()
 --
--- RETURNS: errno
+-- RETURNS: The lastError value of the socketPointer
 --
 -- NOTES:
 -- This function is used to retrieve errno
 ----------------------------------------------------------------------------------------------------------------------*/
-int32_t getSocketError(){
-  return errno;
+int32_t getSocketError(struct socketStruct* socketPointer){
+  return socketPointer->lastError;
 }
