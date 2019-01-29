@@ -2,7 +2,7 @@
 -- SOURCE FILE: socket.c - A socket function library for using TCP and UDP sockets.
 --
 --
--- PROGRAM: Assignment1
+-- PROGRAM: libsocket
 --
 -- UDP and TCP FUNCTIONS:
 -- struct socketStruct * createSocket()
