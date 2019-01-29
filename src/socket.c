@@ -29,7 +29,7 @@
 --
 -- REVISIONS: 
 --
--- DESIGNER: Cameron Roberts
+-- DESIGNER: Cameron Roberts, Simon Wu
 --
 -- PROGRAMMER: Cameron Roberts, Simon Wu
 --
