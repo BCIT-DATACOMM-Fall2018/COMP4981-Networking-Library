@@ -410,14 +410,18 @@ int32_t recvData(struct socketStruct* socketPointer, char * dataBuffer, size_t d
 --                struct socketStrict * socketPointer: A pointer to the socketStruct whose
 --                                                     socket should be closed
 --
--- RETURNS: On success 0 is returned. 
---          On error -1 is returned and lastError of the socket struct is set appropriately.
+-- RETURNS: On success 1 is returned. 
+--          On error 0 is returned and lastError of the socket struct is set appropriately.
 --
 -- NOTES:
 -- This function is used to close a socket contained within a socketStruct.
 ----------------------------------------------------------------------------------------------------------------------*/
 int32_t closeSocket(struct socketStruct * socketPointer){
-  return close(socketPointer->socketDescriptor);
+  if(close(socketPointer->socketDescriptor) == -1){
+    socketPointer->lastError = errno;
+    return 0;
+  }
+  return 1;
 }
 
 /*------------------------------------------------------------------------------------------------------------------
