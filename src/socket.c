@@ -23,7 +23,7 @@
 -- int recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_t packetSize)
 --
 -- OTHER FUNCTIONS 
--- int getSocketError()
+-- int getSocketError(struct socketStruct* socketPointer)
 --
 -- DATE: January 23rd, 2018
 --
