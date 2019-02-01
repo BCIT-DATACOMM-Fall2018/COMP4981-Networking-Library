@@ -13,7 +13,7 @@
 -- UDP FUNCTIONS:
 -- int initSocket(struct socketStruct* socketPointer)
 -- int sendData(struct socketStruct* socket, struct destination * dest, const char* data, size_t dataLength)
--- int recvData(struct socketStruct* socket, char * dataBuffer, size_t dataBufferLength)
+-- int recvData(struct socketStruct* socket, struct destination * dest, char * dataBuffer, size_t dataBufferLength)
 --
 -- TCP FUNCTIONS:
 -- int initSocketTCP(struct socketStruct* socketPointer)
@@ -305,7 +305,6 @@ int32_t sendData(struct socketStruct* socketPointer, struct destination * dest, 
     destSockAddr.sin_family = AF_INET;
     destSockAddr.sin_port = dest->port;
 	  destSockAddr.sin_addr.s_addr = dest->address;
-    printf("%s, %d, %d\n", data, ntohs(dest->port), ntohl(dest->address));
     if (sendto (socketPointer->socketDescriptor, data, dataLength, 0,(struct sockaddr *)&destSockAddr, sizeof(destSockAddr)) < 0)
 		{
 			perror ("sendto error");
@@ -372,6 +371,8 @@ int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_
 -- INTERFACE: int recvData(struct socketStruct* socketPointer, char * dataBuffer, size_t dataBufferLength)
 --                struct socketStrict * socketPointer: A pointer to the socketStruct whose
 --                                                     socket should be read from
+--                struct destination dest: A destination struct to fill with the address and port data was
+--                                         recieved from
 --                const char * dataBuffer: An array for received data to be placed into
 --                size_t dataBufferSize: The size of dataBuffer
 --
@@ -381,7 +382,7 @@ int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_
 -- NOTES:
 -- This function is used to receive data from a bound UDP port.
 ----------------------------------------------------------------------------------------------------------------------*/
-int32_t recvData(struct socketStruct* socketPointer, char * dataBuffer, size_t dataBufferSize){
+int32_t recvData(struct socketStruct* socketPointer, struct destination * dest,  char * dataBuffer, size_t dataBufferSize){
     struct sockaddr_in destSockAddr;
     socklen_t destSockAddrSize = sizeof(destSockAddr);
     int bytesReceived;
@@ -392,6 +393,9 @@ int32_t recvData(struct socketStruct* socketPointer, char * dataBuffer, size_t d
       socketPointer->lastError=errno;
       return -1;
     }
+    dest->address = destSockAddr.sin_addr.s_addr;
+    dest->port = destSockAddr.sin_port;
+
     return bytesReceived;
 }
 
