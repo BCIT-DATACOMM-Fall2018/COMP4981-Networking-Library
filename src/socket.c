@@ -229,17 +229,17 @@ int connectPort(struct socketStruct* socketPointer, struct destination* dest) {
 -- NOTES:
 -- This function is used to accept a incoming TCP connection.
 ----------------------------------------------------------------------------------------------------------------------*/
-uint32_t acceptClient(struct socketStruct* socketPointer) {
+int32_t acceptClient(struct socketStruct* socketPointer) {
   struct sockaddr_in clientAddr;
   memset((char *)&clientAddr, 0, sizeof(clientAddr));
   socklen_t clientAddressLength = sizeof(clientAddr);
-  int socketDescriptor;
+  int32_t socketDescriptor;
   if ((socketDescriptor = accept(socketPointer->socketDescriptor, (struct sockaddr *) &clientAddr, &clientAddressLength)) == -1) {
     perror("Unable to connect to client");
     socketPointer->lastError=errno;
     return 0;
   }
-  return (uint32_t)socketDescriptor;
+  return socketDescriptor;
 }
 
 
