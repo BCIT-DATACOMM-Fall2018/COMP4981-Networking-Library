@@ -28,7 +28,7 @@ void freeSocket(struct socketStruct * socket);
 int32_t initSocketTCP(struct socketStruct* socketPointer);
 int32_t bindPort(struct socketStruct* socketPointer, uint16_t port);
 int32_t connectPort(struct socketStruct* socketPointer, struct destination* dest);
-struct socketStruct * acceptClient(struct socketStruct* socketPointer);
+uint32_t acceptClient(struct socketStruct* socketPointer);
 int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, uint64_t dataBufferSize);
 int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_t packetSize);
 

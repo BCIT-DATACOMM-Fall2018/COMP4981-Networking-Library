@@ -211,36 +211,35 @@ int connectPort(struct socketStruct* socketPointer, struct destination* dest) {
 --
 -- DATE: January 23rd, 2019
 --
--- REVISIONS: 
+-- REVISIONS: January 31st 2019
+--              -Altered function to return a socket descriptor rather than a socketStruct
 --
 -- DESIGNER: Simon Wu
 --
 -- PROGRAMMER: Simon Wu, Cameron Roberts
 --
--- INTERFACE: struct socketStruct * acceptClient(struct socketStruct* socketPointer)
+-- INTERFACE: uint64_t acceptClient(struct socketStruct* socketPointer)
 --                struct socketStrict * socketPointer: A pointer to the socketStruct whose
 --                                                     socket should be to accept an incoming
 --                                                     connection
 --
--- RETURNS: On sucess a pointer to a newly created socketStruct is returned. On error NULL is
+-- RETURNS: On sucess a new socket descriptor is returned. On error NULL is
 --          returned and lastError of the socket struct is set appropriately.
 --
 -- NOTES:
 -- This function is used to accept a incoming TCP connection.
 ----------------------------------------------------------------------------------------------------------------------*/
-struct socketStruct * acceptClient(struct socketStruct* socketPointer) {
-  struct socketStruct * connectionSocket = createSocket();
+uint32_t acceptClient(struct socketStruct* socketPointer) {
   struct sockaddr_in clientAddr;
   memset((char *)&clientAddr, 0, sizeof(clientAddr));
   socklen_t clientAddressLength = sizeof(clientAddr);
-
-  if ((connectionSocket->socketDescriptor = (uint32_t)accept(socketPointer->socketDescriptor, (struct sockaddr *) &clientAddr, &clientAddressLength)) == -1) {
+  int socketDescriptor;
+  if ((socketDescriptor = accept(socketPointer->socketDescriptor, (struct sockaddr *) &clientAddr, &clientAddressLength)) == -1) {
     perror("Unable to connect to client");
     socketPointer->lastError=errno;
-    free(connectionSocket);
-    return NULL;
+    return 0;
   }
-  return connectionSocket;
+  return (uint32_t)socketDescriptor;
 }
 
 
