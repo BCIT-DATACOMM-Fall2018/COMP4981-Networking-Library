@@ -265,7 +265,7 @@ int32_t acceptClient(struct socketStruct* socketPointer) {
 -- NOTES:
 -- This function is used to send data on a connected TCP socket.
 ----------------------------------------------------------------------------------------------------------------------*/
-int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, size_t dataLength) {
+int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, uint64_t dataLength) {
   	if (send(socketPointer->socketDescriptor, data, dataLength, 0) < 0) {
       perror("send error");
       socketPointer->lastError=errno;
@@ -298,7 +298,7 @@ int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, size_t
 -- This function is used to send data on a bound UDP port. The data will be sent to the IP address and port
 -- specified in the destination struct.
 ----------------------------------------------------------------------------------------------------------------------*/
-int32_t sendData(struct socketStruct* socketPointer, struct destination * dest, const char* data, size_t dataLength){
+int32_t sendData(struct socketStruct* socketPointer, struct destination * dest, const char* data, uint64_t dataLength){
     struct sockaddr_in destSockAddr;
     memset((char *)&destSockAddr, 0, sizeof(destSockAddr));
     destSockAddr.sin_family = AF_INET;
