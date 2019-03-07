@@ -9,6 +9,7 @@
 -- int bindPort(struct socketStruct* socketPointer, uint16_t port)
 -- int closeSocket(struct socketStruct * socket)
 -- void freeSocket(struct socketStruct * socket)
+-- int32_t attachTimeout(struct socketStruct* socketPointer, int32_t waitDuration)
 --
 -- UDP FUNCTIONS:
 -- int initSocket(struct socketStruct* socketPointer)
@@ -123,6 +124,7 @@ int32_t attachTimeout(struct socketStruct* socketPointer, int32_t waitDuration) 
   waitTime.tv_usec = 0;
 
   if (setsockopt(socketPointer->socketDescriptor, SOL_SOCKET, SO_RCVTIMEO, (const char*)&waitTime, sizeof waitTime) == -1) {
+    socketPointer->lastError=errno;
     perror("Unable to attach receive timeout to socket");
     return 0;
   }
