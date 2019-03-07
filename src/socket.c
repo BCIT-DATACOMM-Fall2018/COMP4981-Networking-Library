@@ -610,6 +610,9 @@ int32_t recvData(struct socketStruct* socketPointer, struct destination * dest, 
           socketPointer->lastError=ERR_UNKNOWN;
           break;
       }
+      if(errno == EWOULDBLOCK || errno == EAGAIN){
+        socketPointer->lastError=ERR_TIMEOUT;
+      }
       return -1;
     }
     dest->address = destSockAddr.sin_addr.s_addr;
