@@ -19,6 +19,7 @@ struct socketStruct{
 
 
 struct socketStruct * createSocket();
+int32_t attachTimeout(struct socketStruct* socketPointer, int32_t waitDuration);
 int32_t initSocket(struct socketStruct* socketPointer);
 int32_t sendData(struct socketStruct* socket, struct destination * dest, const char* data, u_int64_t dataLength);
 int32_t recvData(struct socketStruct* socketPointer,struct destination * dest,  char * dataBuffer, size_t dataBufferSize);
