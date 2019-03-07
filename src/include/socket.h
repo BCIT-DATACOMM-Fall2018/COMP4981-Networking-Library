@@ -22,6 +22,7 @@
 #define ERR_BADSOCK 6
 #define ERR_CONRESET 7
 #define ERR_PERMISSION 8
+#define ERR_ADDRNOTAVAIL 9
 
 struct socketStruct{
     int32_t socketDescriptor;

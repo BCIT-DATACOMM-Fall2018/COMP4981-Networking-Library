@@ -181,19 +181,16 @@ int32_t initSocket(struct socketStruct* socketPointer){
   {
     perror ("Can't create a socket");
     switch (errno){
-      case EBADF:
-        socketPointer->lastError=ERR_BADSOCK;
+      case EACCES:
+        socketPointer->lastError=ERR_PERMISSION;
         break;
-      case ENOTSOCK:
-        socketPointer->lastError=ERR_BADSOCK;
-        break;
-      case EINVAL:
-        socketPointer->lastError=ERR_ILLEGALOP;
+      case ENOMEM:
+        socketPointer->lastError=ERR_NOMEMORY;
         break;
       default:
         socketPointer->lastError=ERR_UNKNOWN;
         break;
-    }    
+    }  
     return 0;
   }
   return 1;
@@ -287,7 +284,7 @@ int connectPort(struct socketStruct* socketPointer, struct destination* dest) {
     perror("Can't connect to server");
     switch (errno){
       case EADDRNOTAVAIL:
-        socketPointer->lastError=ERR_ILLEGALOP;
+        socketPointer->lastError=ERR_ADDRNOTAVAIL;
         break;
       case EBADF:
         socketPointer->lastError=ERR_BADSOCK;
