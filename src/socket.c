@@ -91,6 +91,17 @@ struct socketStruct * createSocket(){
 int initSocketTCP(struct socketStruct* socketPointer) {
   if ((socketPointer->socketDescriptor = socket(AF_INET, SOCK_STREAM, 0)) == -1) {
     perror("Can't create a socket for TCP");
+    switch (errno){
+      case EACCES:
+        socketPointer->lastError=ERR_PERMISSION;
+        break;
+      case ENOMEM:
+        socketPointer->lastError=ERR_NOMEMORY;
+        break;
+      default:
+        socketPointer->lastError=ERR_UNKNOWN;
+        break;
+    }
     return 0;
   }
 
@@ -124,8 +135,21 @@ int32_t attachTimeout(struct socketStruct* socketPointer, int32_t waitDuration) 
   waitTime.tv_usec = 0;
 
   if (setsockopt(socketPointer->socketDescriptor, SOL_SOCKET, SO_RCVTIMEO, (const char*)&waitTime, sizeof waitTime) == -1) {
-    socketPointer->lastError=errno;
     perror("Unable to attach receive timeout to socket");
+    switch (errno){
+      case EBADF:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      case ENOTSOCK:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      case EINVAL:
+        socketPointer->lastError=ERR_ILLEGALOP;
+        break;
+      default:
+        socketPointer->lastError=ERR_UNKNOWN;
+        break;
+    }
     return 0;
   }
   return 1;
@@ -156,10 +180,22 @@ int32_t initSocket(struct socketStruct* socketPointer){
   if ((socketPointer->socketDescriptor = socket (AF_INET, SOCK_DGRAM, 0)) == -1)
   {
     perror ("Can't create a socket");
-    socketPointer->lastError=errno;
+    switch (errno){
+      case EBADF:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      case ENOTSOCK:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      case EINVAL:
+        socketPointer->lastError=ERR_ILLEGALOP;
+        break;
+      default:
+        socketPointer->lastError=ERR_UNKNOWN;
+        break;
+    }    
     return 0;
   }
-
   return 1;
 }
 
@@ -196,7 +232,23 @@ int32_t bindPort(struct socketStruct* socketPointer, uint16_t port) {
 
   if (bind(socketPointer->socketDescriptor, (struct sockaddr*) &(socketAddress), sizeof(socketAddress)) == -1) {
     perror ("Can't bind name to socket");
-    socketPointer->lastError=errno;
+    switch (errno){
+      case EACCES:
+        socketPointer->lastError=ERR_PERMISSION;
+        break;
+      case EADDRINUSE:
+        socketPointer->lastError=ERR_ADDRINUSE;
+        break;
+      case EINVAL:
+        socketPointer->lastError=ERR_ILLEGALOP;
+        break;
+      case ENOTSOCK:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      default:
+        socketPointer->lastError=ERR_UNKNOWN;
+        break;
+    }   
     return 0;
   }
   return 1;
@@ -233,7 +285,44 @@ int connectPort(struct socketStruct* socketPointer, struct destination* dest) {
 
   if (connect(socketPointer->socketDescriptor, (struct sockaddr *) &(destSockAddr), sizeof(destSockAddr)) == -1) {
     perror("Can't connect to server");
-    socketPointer->lastError=errno;
+    switch (errno){
+      case EADDRNOTAVAIL:
+        socketPointer->lastError=ERR_ILLEGALOP;
+        break;
+      case EBADF:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      case ECONNREFUSED:
+        socketPointer->lastError=ERR_CONREFUSED;
+        break;
+      case EISCONN:
+        socketPointer->lastError=ERR_ILLEGALOP;
+        break;
+      case ENETUNREACH:
+        socketPointer->lastError=ERR_DESTUNREACH;
+        break;
+      case ENOTSOCK:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      case ECONNRESET:
+        socketPointer->lastError=ERR_CONRESET;
+        break;
+      case EHOSTUNREACH:
+        socketPointer->lastError=ERR_DESTUNREACH;
+        break;
+      case ENETDOWN:
+        socketPointer->lastError=ERR_DESTUNREACH;
+        break;
+      case EOPNOTSUPP:
+        socketPointer->lastError=ERR_ILLEGALOP;
+        break;
+      case EINVAL:
+        socketPointer->lastError=ERR_ILLEGALOP;
+        break;
+      default:
+        socketPointer->lastError=ERR_UNKNOWN;
+        break;
+    }
     return 0;
   }
   return 1;
@@ -269,7 +358,23 @@ int32_t acceptClient(struct socketStruct* socketPointer) {
   int32_t socketDescriptor;
   if ((socketDescriptor = accept(socketPointer->socketDescriptor, (struct sockaddr *) &clientAddr, &clientAddressLength)) == -1) {
     perror("Unable to connect to client");
-    socketPointer->lastError=errno;
+    switch (errno){
+      case EBADF:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      case EINVAL:
+        socketPointer->lastError=ERR_ILLEGALOP;
+        break;
+      case EPERM:
+        socketPointer->lastError=ERR_PERMISSION;
+        break;
+      case ENOTSOCK:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      default:
+        socketPointer->lastError=ERR_UNKNOWN;
+        break;
+    }   
     return 0;
   }
   return socketDescriptor;
@@ -301,7 +406,23 @@ int32_t acceptClient(struct socketStruct* socketPointer) {
 int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, uint64_t dataLength) {
   	if (send(socketPointer->socketDescriptor, data, dataLength, 0) < 0) {
       perror("send error");
-      socketPointer->lastError=errno;
+      switch (errno){
+        case EBADF:
+          socketPointer->lastError=ERR_BADSOCK;
+          break;
+        case ENOTSOCK:
+          socketPointer->lastError=ERR_BADSOCK;
+          break;
+        case ENOTCONN:
+          socketPointer->lastError=ERR_ILLEGALOP;
+          break;
+        case ENOMEM:
+          socketPointer->lastError=ERR_NOMEMORY;
+          break;
+        default:
+          socketPointer->lastError=ERR_UNKNOWN;
+          break;
+      }
       return 0;
     }
     return 1;
@@ -343,7 +464,23 @@ int32_t sendData(struct socketStruct* socketPointer, struct destination * dest, 
     if (sendto (socketPointer->socketDescriptor, data, dataLength, 0,(struct sockaddr *)&destSockAddr, sizeof(destSockAddr)) < 0)
 		{
 			perror ("sendto error");
-      socketPointer->lastError=errno;
+      switch (errno){
+        case EBADF:
+          socketPointer->lastError=ERR_BADSOCK;
+          break;
+        case ENOTSOCK:
+          socketPointer->lastError=ERR_BADSOCK;
+          break;
+        case EMSGSIZE:
+          socketPointer->lastError=ERR_ILLEGALOP;
+          break;
+        case ENOMEM:
+          socketPointer->lastError=ERR_NOMEMORY;
+          break;
+        default:
+          socketPointer->lastError=ERR_UNKNOWN;
+          break;
+      }
 			return errno;
 		}
     return 1;
@@ -386,7 +523,26 @@ int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_
     }
     if (readCount == -1) {
       perror("recv error");
-      socketPointer->lastError=errno;
+      switch (errno){
+        case EBADF:
+          socketPointer->lastError=ERR_BADSOCK;
+          break;
+        case ENOTSOCK:
+          socketPointer->lastError=ERR_BADSOCK;
+          break;
+        case ENOTCONN:
+          socketPointer->lastError=ERR_ILLEGALOP;
+          break;
+        case ENOMEM:
+          socketPointer->lastError=ERR_NOMEMORY;
+          break;
+        case ECONNREFUSED:
+          socketPointer->lastError=ERR_CONREFUSED;
+          break;
+        default:
+          socketPointer->lastError=ERR_UNKNOWN;
+          break;
+      }
       return errno;
     }
     dataBuffer += readCount;
@@ -396,7 +552,7 @@ int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_
 }
 
 /*------------------------------------------------------------------------------------------------------------------
--- FUNCTION: sendData
+-- FUNCTION: recvData
 --
 -- DATE: January 23rd, 2019
 --
@@ -428,7 +584,23 @@ int32_t recvData(struct socketStruct* socketPointer, struct destination * dest, 
     if ((bytesReceived = recvfrom (socketPointer->socketDescriptor, dataBuffer, dataBufferSize, 0, (struct sockaddr *)&destSockAddr, &destSockAddrSize)) < 0)
     {
       perror ("recvfrom error");
-      socketPointer->lastError=errno;
+      switch (errno){
+        case EBADF:
+          socketPointer->lastError=ERR_BADSOCK;
+          break;
+        case ENOTSOCK:
+          socketPointer->lastError=ERR_BADSOCK;
+          break;
+        case ENOMEM:
+          socketPointer->lastError=ERR_NOMEMORY;
+          break;
+        case ECONNREFUSED:
+          socketPointer->lastError=ERR_CONREFUSED;
+          break;
+        default:
+          socketPointer->lastError=ERR_UNKNOWN;
+          break;
+      }
       return -1;
     }
     dest->address = destSockAddr.sin_addr.s_addr;
@@ -460,7 +632,17 @@ int32_t recvData(struct socketStruct* socketPointer, struct destination * dest, 
 ----------------------------------------------------------------------------------------------------------------------*/
 int32_t closeSocket(struct socketStruct * socketPointer){
   if(close(socketPointer->socketDescriptor) == -1){
-    socketPointer->lastError = errno;
+    switch (errno){
+      case EBADF:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      case EIO:
+        socketPointer->lastError=ERR_UNKNOWN;
+        break;
+      default:
+        socketPointer->lastError=ERR_UNKNOWN;
+        break;
+    }
     return 0;
   }
   return 1;
