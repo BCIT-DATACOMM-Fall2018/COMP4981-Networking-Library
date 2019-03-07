@@ -13,16 +13,17 @@
 
 #include "destination.h"
 
-#define ERR_UNKNOWN 0
-#define ERR_NOMEMORY 1
-#define ERR_ILLEGALOP 2
-#define ERR_CONREFUSED 3
-#define ERR_DESTUNREACH 4
-#define ERR_ADDRINUSE 5
-#define ERR_BADSOCK 6
-#define ERR_CONRESET 7
-#define ERR_PERMISSION 8
-#define ERR_ADDRNOTAVAIL 9
+#define ERR_UNKNOWN         0
+#define ERR_NOMEMORY        1
+#define ERR_ILLEGALOP       2
+#define ERR_CONREFUSED      3
+#define ERR_DESTUNREACH     4
+#define ERR_ADDRINUSE       5
+#define ERR_BADSOCK         6
+#define ERR_CONRESET        7
+#define ERR_PERMISSION      8
+#define ERR_ADDRNOTAVAIL    9
+#define ERR_TIMEOUT         10
 
 struct socketStruct{
     int32_t socketDescriptor;

@@ -316,6 +316,9 @@ int connectPort(struct socketStruct* socketPointer, struct destination* dest) {
       case EINVAL:
         socketPointer->lastError=ERR_ILLEGALOP;
         break;
+      case EINPROGRESS:
+        socketPointer->lastError=ERR_TIMEOUT;
+        break;
       default:
         socketPointer->lastError=ERR_UNKNOWN;
         break;
@@ -420,6 +423,9 @@ int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, uint64
           socketPointer->lastError=ERR_UNKNOWN;
           break;
       }
+      if(errno == EWOULDBLOCK || errno == EAGAIN){
+        socketPointer->lastError=ERR_TIMEOUT;
+      }
       return 0;
     }
     return 1;
@@ -478,7 +484,10 @@ int32_t sendData(struct socketStruct* socketPointer, struct destination * dest, 
           socketPointer->lastError=ERR_UNKNOWN;
           break;
       }
-			return errno;
+      if(errno == EWOULDBLOCK || errno == EAGAIN){
+        socketPointer->lastError=ERR_TIMEOUT;
+      }
+			return 0;
 		}
     return 1;
 }
@@ -503,7 +512,7 @@ int32_t sendData(struct socketStruct* socketPointer, struct destination * dest, 
 --                const char * data: A char array containing the data to be sent
 --                int32_t packetSize: The number of characters to read
 --
--- RETURNS: The number of characters read into dataBuffer.
+-- RETURNS: The number of characters read into dataBuffer or -1 on error.
 --
 -- NOTES:
 -- This function is used to recieve data from a connected TCP socket. The function will continue
@@ -540,7 +549,10 @@ int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_
           socketPointer->lastError=ERR_UNKNOWN;
           break;
       }
-      return errno;
+      if(errno == EWOULDBLOCK || errno == EAGAIN){
+        socketPointer->lastError=ERR_TIMEOUT;
+      }
+      return -1;
     }
     dataBuffer += readCount;
     length -= readCount;
@@ -568,7 +580,7 @@ int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_
 --                size_t dataBufferSize: The size of dataBuffer
 --
 -- RETURNS: On success the number of bytes read into dataBuffer is returned. 
---          On error 0 is returned and lastError of the socket struct is set appropriately.
+--          On error -1 is returned and lastError of the socket struct is set appropriately.
 --
 -- NOTES:
 -- This function is used to receive data from a bound UDP port.
