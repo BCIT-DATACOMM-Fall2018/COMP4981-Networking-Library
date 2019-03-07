@@ -96,6 +96,38 @@ int initSocketTCP(struct socketStruct* socketPointer) {
   return 1;
 }
 
+/*------------------------------------------------------------------------------------------------------------------
+-- FUNCTION: attachTimeout
+--
+-- DATE: March 6th, 2019
+--
+-- REVISIONS: 
+--
+-- DESIGNER: Simon Wu
+--
+-- PROGRAMMER: Simon Wu
+--
+-- INTERFACE: int attachTimeout(struct socketStruck* socketPointer, int waitDuration)
+--                struct socketStrict * socketPointer: A pointer to the socketStruct whose socket we are attaching
+--                                                     the timeout to (for receiving)
+--                int waitDuration: The length of the wait until socket timeout
+--
+-- RETURNS: On success 1 is returned. On error 0 is returned and lastError of the socket struct is set appropriately.
+--    
+-- NOTES:
+-- This function is used to attach a receive timeout to the specified socket.
+----------------------------------------------------------------------------------------------------------------------*/
+int32_t attachTimeout(struct socketStruct* socketPointer, int32_t waitDuration) {
+  struct timeval waitTime;
+  waitTime.tv_sec = waitDuration;
+  waitTime.tv_usec = 0;
+
+  if (setsockopt(socketPointer->socketDescriptor, SOL_SOCKET, SO_RCVTIMEO, (const char*)&waitTime, sizeof waitTime) == -1) {
+    perror("Unable to attach receive timeout to socket");
+    return 0;
+  }
+  return 1;
+}
 
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: initSocket
@@ -159,7 +191,6 @@ int32_t bindPort(struct socketStruct* socketPointer, uint16_t port) {
   socketAddress.sin_family = AF_INET;
   socketAddress.sin_port = port;
   socketAddress.sin_addr.s_addr = htonl(INADDR_ANY);
-
 
   if (bind(socketPointer->socketDescriptor, (struct sockaddr*) &(socketAddress), sizeof(socketAddress)) == -1) {
     perror ("Can't bind name to socket");
@@ -277,13 +308,16 @@ int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, uint64
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: sendData
 --
--- DATE: January 23rd, 2019
+-- DATE: March 6th, 2019
 --
--- REVISIONS: 
+-- REVISIONS: March 6, 2019
+--              -Change failure return to return errno instead
+--            January 23, 2019
+--              -Initial start
 --
 -- DESIGNER: Cameron Roberts
 --
--- PROGRAMMER: Cameron Roberts
+-- PROGRAMMER: Cameron Roberts, Simon Wu
 --
 -- INTERFACE: int sendData(struct socketStruct* socketPointer, struct destination * dest, const char* data, size_t dataLength)
 --                struct socketStrict * socketPointer: A pointer to the socketStruct whose
@@ -308,7 +342,7 @@ int32_t sendData(struct socketStruct* socketPointer, struct destination * dest, 
 		{
 			perror ("sendto error");
       socketPointer->lastError=errno;
-			return 0;
+			return errno;
 		}
     return 1;
 }
@@ -316,9 +350,12 @@ int32_t sendData(struct socketStruct* socketPointer, struct destination * dest, 
 /*------------------------------------------------------------------------------------------------------------------
 -- FUNCTION: recvDataTCP
 --
--- DATE: January 23rd, 2019
+-- DATE: March 6th, 2019
 --
--- REVISIONS: 
+-- REVISIONS: March 6, 2019
+--              -Change failure return to return errno instead
+--            January 23, 2019
+--              -Initial start
 --
 -- DESIGNER: Simon Wu
 --
@@ -348,7 +385,7 @@ int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_
     if (readCount == -1) {
       perror("recv error");
       socketPointer->lastError=errno;
-      return readCount;
+      return errno;
     }
     dataBuffer += readCount;
     length -= readCount;
