@@ -586,39 +586,51 @@ int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_
 -- This function is used to receive data from a bound UDP port.
 ----------------------------------------------------------------------------------------------------------------------*/
 int32_t recvData(struct socketStruct* socketPointer, struct destination * dest,  char * dataBuffer, size_t dataBufferSize){
-    struct sockaddr_in destSockAddr;
-    socklen_t destSockAddrSize = sizeof(destSockAddr);
-    int bytesReceived;
+  struct sockaddr_in destSockAddr;
+  socklen_t destSockAddrSize = sizeof(destSockAddr);
+  int bytesReceived;
 
-    if ((bytesReceived = recvfrom (socketPointer->socketDescriptor, dataBuffer, dataBufferSize, 0, (struct sockaddr *)&destSockAddr, &destSockAddrSize)) < 0)
-    {
-      perror ("recvfrom error");
-      switch (errno){
-        case EBADF:
-          socketPointer->lastError=ERR_BADSOCK;
-          break;
-        case ENOTSOCK:
-          socketPointer->lastError=ERR_BADSOCK;
-          break;
-        case ENOMEM:
-          socketPointer->lastError=ERR_NOMEMORY;
-          break;
-        case ECONNREFUSED:
-          socketPointer->lastError=ERR_CONREFUSED;
-          break;
-        default:
-          socketPointer->lastError=ERR_UNKNOWN;
-          break;
-      }
-      if(errno == EWOULDBLOCK || errno == EAGAIN){
-        socketPointer->lastError=ERR_TIMEOUT;
-      }
-      return -1;
+  // Label exists to retry recvfrom in the case where it is inturrupted by a signal.
+  // This and to if and goto statement below recvfrom should be removed when building
+  // the standalone game as they exist only to prevent Unity processes ending from causing
+  // recvfrom to return early.
+  retry:
+
+  if ((bytesReceived = recvfrom (socketPointer->socketDescriptor, dataBuffer, dataBufferSize, 0, (struct sockaddr *)&destSockAddr, &destSockAddrSize)) < 0)
+  {
+    // See comment on retry label
+    if(errno == EINTR){
+      goto retry;
     }
-    dest->address = destSockAddr.sin_addr.s_addr;
-    dest->port = destSockAddr.sin_port;
+    
+    perror ("recvfrom error");
+    switch (errno){
+      case EBADF:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      case ENOTSOCK:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      case ENOMEM:
+        socketPointer->lastError=ERR_NOMEMORY;
+        break;
+      case ECONNREFUSED:
+        socketPointer->lastError=ERR_CONREFUSED;
+        break;
+      default:
+        socketPointer->lastError=ERR_UNKNOWN;
+        break;
+    }
+    if(errno == EWOULDBLOCK || errno == EAGAIN){
+      socketPointer->lastError=ERR_TIMEOUT;
+    }
+    return -1;
+  }
 
-    return bytesReceived;
+  dest->address = destSockAddr.sin_addr.s_addr;
+  dest->port = destSockAddr.sin_port;
+
+  return bytesReceived;
 }
 
 /*------------------------------------------------------------------------------------------------------------------
