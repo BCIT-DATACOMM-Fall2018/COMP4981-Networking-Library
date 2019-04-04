@@ -623,48 +623,49 @@ int32_t recvData(struct socketStruct* socketPointer, struct destination * dest, 
   int bytesReceived;
 
 
-    if (socketPointer == 0)
-    {
-      perror("Socket not initialized");
-      return 0;
-    }
-    if (dest == 0 || dataBuffer == 0)
-    {
-      socketPointer->lastError = ERR_ILLEGALOP;
-      return 0;
-    }
+  if (socketPointer == 0)
+  {
+    perror("Socket not initialized");
+    return -1;
+  }
+  if (dest == 0 || dataBuffer == 0)
+  {
+    socketPointer->lastError = ERR_ILLEGALOP;
+    return -1;
+  }
 
-    if ((bytesReceived = recvfrom (socketPointer->socketDescriptor, dataBuffer, dataBufferSize, 0, (struct sockaddr *)&destSockAddr, &destSockAddrSize)) < 0)
-    {
-      // See comment on retry label
-      if(errno == EINTR){
-        goto retry;
-      }
-      perror ("recvfrom error");
-      switch (errno){
-        case EBADF:
-          socketPointer->lastError=ERR_BADSOCK;
-          break;
-        case ENOTSOCK:
-          socketPointer->lastError=ERR_BADSOCK;
-          break;
-        case ENOMEM:
-          socketPointer->lastError=ERR_NOMEMORY;
-          break;
-        case ECONNREFUSED:
-          socketPointer->lastError=ERR_CONREFUSED;
-          break;
-        default:
-          socketPointer->lastError=ERR_UNKNOWN;
-          break;
-      }
-      if(errno == EWOULDBLOCK || errno == EAGAIN){
-        socketPointer->lastError=ERR_TIMEOUT;
-      }
-      return -1;
+  retry:
+
+  if ((bytesReceived = recvfrom (socketPointer->socketDescriptor, dataBuffer, dataBufferSize, 0, (struct sockaddr *)&destSockAddr, &destSockAddrSize)) < 0)
+  {
+    // See comment on retry label
+    if(errno == EINTR){
+      goto retry;
+    }
+    perror ("recvfrom error");
+    switch (errno){
+      case EBADF:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      case ENOTSOCK:
+        socketPointer->lastError=ERR_BADSOCK;
+        break;
+      case ENOMEM:
+        socketPointer->lastError=ERR_NOMEMORY;
+        break;
+      case ECONNREFUSED:
+        socketPointer->lastError=ERR_CONREFUSED;
+        break;
+      default:
+        socketPointer->lastError=ERR_UNKNOWN;
+        break;
+    }
+    if(errno == EWOULDBLOCK || errno == EAGAIN){
+      socketPointer->lastError=ERR_TIMEOUT;
     }
     return -1;
   }
+
 
   dest->address = destSockAddr.sin_addr.s_addr;
   dest->port = destSockAddr.sin_port;
