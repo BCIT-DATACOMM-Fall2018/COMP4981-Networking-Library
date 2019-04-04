@@ -404,6 +404,16 @@ int32_t acceptClient(struct socketStruct* socketPointer) {
 -- This function is used to send data on a connected TCP socket.
 ----------------------------------------------------------------------------------------------------------------------*/
 int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, uint64_t dataLength) {
+    if (socketPointer == 0)
+    {
+      perror("Socket not initialized");
+      return 0;
+    }
+    if (data == 0)
+    {
+      socketPointer->lastError = ERR_ILLEGALOP;
+      return 0;
+    }
   	if (send(socketPointer->socketDescriptor, data, dataLength, 0) < 0) {
       perror("send error");
       switch (errno){
@@ -441,7 +451,7 @@ int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, uint64
 --            January 23, 2019
 --              -Initial start
 --
--- DESIGNER: Cameron Roberts
+-- DESIGNER: Cameron Roberts, Simon Wu
 --
 -- PROGRAMMER: Cameron Roberts, Simon Wu
 --
@@ -459,6 +469,16 @@ int32_t sendDataTCP(struct socketStruct* socketPointer, const char* data, uint64
 -- specified in the destination struct.
 ----------------------------------------------------------------------------------------------------------------------*/
 int32_t sendData(struct socketStruct* socketPointer, struct destination * dest, const char* data, uint64_t dataLength){
+    if (socketPointer == 0)
+    {
+      perror("Socket not initialized");
+      return 0;
+    }
+    if (dest == 0 || data == 0)
+    {
+      socketPointer->lastError = ERR_ILLEGALOP;
+      return 0;
+    }
     struct sockaddr_in destSockAddr;
     memset((char *)&destSockAddr, 0, sizeof(destSockAddr));
     destSockAddr.sin_family = AF_INET;
@@ -522,6 +542,18 @@ int32_t sendData(struct socketStruct* socketPointer, struct destination * dest, 
 int32_t recvDataTCP(struct socketStruct* socketPointer, char* dataBuffer, int32_t packetSize) {
   int readCount;
   int32_t length = packetSize;
+
+  if (socketPointer == 0)
+  {
+    perror("Socket not initialized");
+    return 0;
+  }
+  if (dataBuffer == 0)
+  {
+    socketPointer->lastError = ERR_ILLEGALOP;
+    return 0;
+  }
+
   while ((readCount = recv((socketPointer->socketDescriptor), dataBuffer, length, 0)) < length) {
     if (readCount == 0){
       // Other side disconnected
@@ -590,39 +622,46 @@ int32_t recvData(struct socketStruct* socketPointer, struct destination * dest, 
   socklen_t destSockAddrSize = sizeof(destSockAddr);
   int bytesReceived;
 
-  // Label exists to retry recvfrom in the case where it is inturrupted by a signal.
-  // This and to if and goto statement below recvfrom should be removed when building
-  // the standalone game as they exist only to prevent Unity processes ending from causing
-  // recvfrom to return early.
-  retry:
 
-  if ((bytesReceived = recvfrom (socketPointer->socketDescriptor, dataBuffer, dataBufferSize, 0, (struct sockaddr *)&destSockAddr, &destSockAddrSize)) < 0)
-  {
-    // See comment on retry label
-    if(errno == EINTR){
-      goto retry;
+    if (socketPointer == 0)
+    {
+      perror("Socket not initialized");
+      return 0;
     }
-    
-    perror ("recvfrom error");
-    switch (errno){
-      case EBADF:
-        socketPointer->lastError=ERR_BADSOCK;
-        break;
-      case ENOTSOCK:
-        socketPointer->lastError=ERR_BADSOCK;
-        break;
-      case ENOMEM:
-        socketPointer->lastError=ERR_NOMEMORY;
-        break;
-      case ECONNREFUSED:
-        socketPointer->lastError=ERR_CONREFUSED;
-        break;
-      default:
-        socketPointer->lastError=ERR_UNKNOWN;
-        break;
+    if (dest == 0 || dataBuffer == 0)
+    {
+      socketPointer->lastError = ERR_ILLEGALOP;
+      return 0;
     }
-    if(errno == EWOULDBLOCK || errno == EAGAIN){
-      socketPointer->lastError=ERR_TIMEOUT;
+
+    if ((bytesReceived = recvfrom (socketPointer->socketDescriptor, dataBuffer, dataBufferSize, 0, (struct sockaddr *)&destSockAddr, &destSockAddrSize)) < 0)
+    {
+      // See comment on retry label
+      if(errno == EINTR){
+        goto retry;
+      }
+      perror ("recvfrom error");
+      switch (errno){
+        case EBADF:
+          socketPointer->lastError=ERR_BADSOCK;
+          break;
+        case ENOTSOCK:
+          socketPointer->lastError=ERR_BADSOCK;
+          break;
+        case ENOMEM:
+          socketPointer->lastError=ERR_NOMEMORY;
+          break;
+        case ECONNREFUSED:
+          socketPointer->lastError=ERR_CONREFUSED;
+          break;
+        default:
+          socketPointer->lastError=ERR_UNKNOWN;
+          break;
+      }
+      if(errno == EWOULDBLOCK || errno == EAGAIN){
+        socketPointer->lastError=ERR_TIMEOUT;
+      }
+      return -1;
     }
     return -1;
   }
