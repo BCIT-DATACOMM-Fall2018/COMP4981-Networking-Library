@@ -695,33 +695,41 @@ int32_t recvData(struct socketStruct *socketPointer, struct destination *dest, c
     return -1;
   }
 
+  int retry = 1;
+  while(retry){
+    if ((bytesReceived = recvfrom(socketPointer->socketDescriptor, dataBuffer, dataBufferSize, 0, (struct sockaddr *)&destSockAddr, &destSockAddrSize)) < 0)
+    {
+      if(errno == EINTR){
+        continue;
+      }
+      retry = 0;
 
-  if ((bytesReceived = recvfrom(socketPointer->socketDescriptor, dataBuffer, dataBufferSize, 0, (struct sockaddr *)&destSockAddr, &destSockAddrSize)) < 0)
-  {
-    switch (errno)
-    {
-    case EBADF:
-      socketPointer->lastError = ERR_BADSOCK;
-      break;
-    case ENOTSOCK:
-      socketPointer->lastError = ERR_BADSOCK;
-      break;
-    case ENOMEM:
-      socketPointer->lastError = ERR_NOMEMORY;
-      break;
-    case ECONNREFUSED:
-      socketPointer->lastError = ERR_CONREFUSED;
-      break;
-    default:
-      socketPointer->lastError = ERR_UNKNOWN;
-      break;
+      switch (errno)
+      {
+      case EBADF:
+        socketPointer->lastError = ERR_BADSOCK;
+        break;
+      case ENOTSOCK:
+        socketPointer->lastError = ERR_BADSOCK;
+        break;
+      case ENOMEM:
+        socketPointer->lastError = ERR_NOMEMORY;
+        break;
+      case ECONNREFUSED:
+        socketPointer->lastError = ERR_CONREFUSED;
+        break;
+      default:
+        socketPointer->lastError = ERR_UNKNOWN;
+        break;
+      }
+      if (errno == EWOULDBLOCK || errno == EAGAIN)
+      {
+        socketPointer->lastError = ERR_TIMEOUT;
+      }
+      logger("ERROR > failed to receive UDP data", socketPointer->lastError);
+      return -1;
     }
-    if (errno == EWOULDBLOCK || errno == EAGAIN)
-    {
-      socketPointer->lastError = ERR_TIMEOUT;
-    }
-    logger("ERROR > failed to receive UDP data", socketPointer->lastError);
-    return -1;
+    retry = 0;
   }
 
   dest->address = destSockAddr.sin_addr.s_addr;
