@@ -115,7 +115,7 @@ int initSocketTCP(struct socketStruct *socketPointer)
     logger("ERROR > unable to initiate TCP socket", socketPointer->lastError);
     return 0;
   }
-  logger("SUCCESS > TCP socket initialized", socketPointer->socketDescriptor);
+  //logger("SUCCESS > TCP socket initialized", socketPointer->socketDescriptor);
   return 1;
 }
 
@@ -166,7 +166,7 @@ int32_t attachTimeout(struct socketStruct *socketPointer, int32_t waitDuration)
     logger("ERROR > unable to attach receive timeout to socket", socketPointer->lastError);
     return 0;
   }
-  logger("SUCCESS > attached receive timeout to socket", socketPointer->socketDescriptor);
+  //logger("SUCCESS > attached receive timeout to socket", socketPointer->socketDescriptor);
   return 1;
 }
 
@@ -177,9 +177,9 @@ int32_t attachTimeout(struct socketStruct *socketPointer, int32_t waitDuration)
 --
 -- REVISIONS: 
 --
--- DESIGNER: Cameron Roberts
+-- DESIGNER: Cameron Roberts, Simon Wu
 --
--- PROGRAMMER: Cameron Roberts
+-- PROGRAMMER: Cameron Roberts, Simon Wu
 --
 -- INTERFACE: int initSocket(struct socketStruct* socketPointer)
 --                struct socketStrict * socketPointer: A pointer to the socketStruct whose 
@@ -210,7 +210,7 @@ int32_t initSocket(struct socketStruct *socketPointer)
     logger("ERROR > unable create a socket", socketPointer->lastError);
     return 0;
   }
-  logger("SUCCESS > UDP socket initialized", socketPointer->socketDescriptor);
+  //logger("SUCCESS > UDP socket initialized", socketPointer->socketDescriptor);
   return 1;
 }
 
@@ -269,7 +269,7 @@ int32_t bindPort(struct socketStruct *socketPointer, uint16_t port)
     logger("ERROR > failed to bind name to socket", socketPointer->lastError);
     return 0;
   }
-  logger("SUCCESS > socket binded", socketPointer->socketDescriptor);
+  //logger("SUCCESS > socket binded", socketPointer->socketDescriptor);
   return 1;
 }
 
@@ -350,7 +350,7 @@ int connectPort(struct socketStruct *socketPointer, struct destination *dest)
     logger("ERROR > unable to connect to server", socketPointer->lastError);
     return 0;
   }
-  logger("SUCCESS > connected to server", socketPointer->socketDescriptor);
+  //logger("SUCCESS > connected to server", socketPointer->socketDescriptor);
   return 1;
 }
 
@@ -408,7 +408,7 @@ int32_t acceptClient(struct socketStruct *socketPointer)
     logger("ERROR > failed to connect to client", socketPointer->lastError);
     return 0;
   }
-  logger("SUCCESS > client accepted", socketPointer->lastError);
+  //logger("SUCCESS > client accepted", socketPointer->lastError);
   return socketDescriptor;
 }
 
@@ -477,7 +477,7 @@ int32_t sendDataTCP(struct socketStruct *socketPointer, const char *data, uint64
     logger("ERROR > failed to send TCP data", socketPointer->lastError);
     return 0;
   }
-  logger("SUCCESS > sent TCP data", socketPointer->socketDescriptor);
+  //logger("SUCCESS > sent TCP data", socketPointer->socketDescriptor);
   return 1;
 }
 
@@ -555,7 +555,7 @@ int32_t sendData(struct socketStruct *socketPointer, struct destination *dest, c
     logger("ERROR > failed to send UDP data", socketPointer->lastError);
     return 0;
   }
-  logger("SUCCESS > sent UDP data", socketPointer->socketDescriptor);
+  //logger("SUCCESS > sent UDP data", socketPointer->socketDescriptor);
   return 1;
 }
 
@@ -645,7 +645,7 @@ int32_t recvDataTCP(struct socketStruct *socketPointer, char *dataBuffer, int32_
     dataBuffer += readCount;
     length -= readCount;
   }
-  logger("SUCCESS > received TCP data", socketPointer->socketDescriptor);
+  //logger("SUCCESS > received TCP data", socketPointer->socketDescriptor);
   return packetSize - length;
 }
 
@@ -695,16 +695,9 @@ int32_t recvData(struct socketStruct *socketPointer, struct destination *dest, c
     return -1;
   }
 
-  retry:
 
   if ((bytesReceived = recvfrom(socketPointer->socketDescriptor, dataBuffer, dataBufferSize, 0, (struct sockaddr *)&destSockAddr, &destSockAddrSize)) < 0)
   {
-    // See comment on retry label
-    if (errno == EINTR)
-    {
-      goto retry;
-    }
-
     switch (errno)
     {
     case EBADF:
@@ -734,7 +727,7 @@ int32_t recvData(struct socketStruct *socketPointer, struct destination *dest, c
   dest->address = destSockAddr.sin_addr.s_addr;
   dest->port = destSockAddr.sin_port;
 
-  logger("SUCCESS > received UDP data", socketPointer->socketDescriptor);
+  //logger("SUCCESS > received UDP data", socketPointer->socketDescriptor);
   return bytesReceived;
 }
 
@@ -786,7 +779,7 @@ int32_t closeSocket(struct socketStruct *socketPointer)
     logger("ERROR > failed to close socket", socketPointer->lastError);
     return 0;
   }
-  logger("SUCCESS > socket closed", socketPointer->socketDescriptor);
+  //logger("SUCCESS > socket closed", socketPointer->socketDescriptor);
   return 1;
 }
 
